@@ -1,6 +1,7 @@
 #include <iostream>
 #include <queue>
 #include <vector>
+#include <climits> // For INT_MAX
 
 using namespace std;
 
@@ -58,8 +59,14 @@ int main() {
     // Round Robin scheduling loop
     while (completed < num_processes) {
         if (ready_queue.empty()) {
-            // If no processes are ready, move time forward
-            current_time++;
+            // FIX 1: Move time forward to the next arrival, not incrementally
+            int next_arrival = INT_MAX;
+            for (int i = 0; i < num_processes; ++i) {
+                if (!in_queue[i] && processes[i].arrival_time > current_time) {
+                    next_arrival = min(next_arrival, processes[i].arrival_time);
+                }
+            }
+            current_time = next_arrival;
             for (int i = 0; i < num_processes; ++i) {
                 if (!in_queue[i] && processes[i].arrival_time <= current_time) {
                     ready_queue.push(i);
@@ -78,11 +85,6 @@ int main() {
         current_time += execution_time;
         processes[current_process_id].remaining_time -= execution_time;
 
-        // Add context switch time
-        if (processes[current_process_id].remaining_time > 0) {
-            current_time += context_switch_time;
-        }
-
         // Check if the process is completed
         if (processes[current_process_id].remaining_time == 0) {
             completed++;
@@ -91,9 +93,12 @@ int main() {
                 processes[current_process_id].completion_time - processes[current_process_id].arrival_time;
             processes[current_process_id].waiting_time =
                 processes[current_process_id].turnaround_time - processes[current_process_id].burst_time;
-        }
-        else {
-            // If not completed, add it back to the queue
+        } else {
+            // FIX 2: Add context switch time only if the queue is not empty
+            if (!ready_queue.empty()) {
+                current_time += context_switch_time;
+            }
+            // Re-queue the process
             ready_queue.push(current_process_id);
         }
 
@@ -109,11 +114,19 @@ int main() {
     // Display results
     cout << "\nProcess Execution Results:\n";
     cout << "ID\tArrival\tBurst\tCompletion\tTurnaround\tWaiting\n";
+    double total_turnaround_time = 0, total_waiting_time = 0;
     for (const auto& p : processes) {
         cout << p.id << "\t" << p.arrival_time << "\t" << p.burst_time
-            << "\t" << p.completion_time << "\t\t" << p.turnaround_time
-            << "\t\t" << p.waiting_time << "\n";
+             << "\t" << p.completion_time << "\t\t" << p.turnaround_time
+             << "\t\t" << p.waiting_time << "\n";
+        total_turnaround_time += p.turnaround_time;
+        total_waiting_time += p.waiting_time;
     }
+
+    // Display average statistics
+    cout << "\nAverage Turnaround Time: " << total_turnaround_time / num_processes << "\n";
+    cout << "Average Waiting Time: " << total_waiting_time / num_processes << "\n";
 
     return 0;
 }
+
