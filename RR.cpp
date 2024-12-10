@@ -110,7 +110,7 @@ int main() {
 / _  \ | (_) || |_| || | | || (_| ||_____|| |   | (_) || |_) || || | | |
 \/ \_/  \___/  \__,_||_| |_| \__,_|       |_|    \___/ |_.__/ |_||_| |_|
 )" << endl;
-    cout << "Round-Robin Scheduler Simulation\n\n";
+    cout << "Round-Robin Scheduler Simulation\nby Rayed Jawad and Ulises Jaimez\n\n";
 
     int num_processes = getValidPositiveInteger("Enter the number of processes: ");
     int quantum_time = getValidPositiveInteger("Enter quantum time: ");
